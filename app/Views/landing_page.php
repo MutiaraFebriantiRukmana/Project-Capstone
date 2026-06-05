@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | NA Cell System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
@@ -66,12 +65,12 @@
         }
 
         .form-control:focus {
-            border-color: #00bcd4; /* Warna Cyan senada logo */
+            border-color: #00bcd4; 
             box-shadow: 0 0 0 0.25 margin rgba(0, 188, 212, 0.25);
         }
 
         .btn-login {
-            background: linear-gradient(to right, #1a237e, #00bcd4); /* Gradient Biru ke Cyan */
+            background: linear-gradient(to right, #1a237e, #00bcd4);
             border: none;
             border-radius: 10px;
             padding: 12px;

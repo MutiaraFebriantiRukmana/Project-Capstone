@@ -35,7 +35,7 @@
 
             <?php if (session()->get('role') == 'owner') : ?>
                 <a class="nav-link <?= (isset($title) && $title == 'Manajemen Stok Barang') ? 'active' : '' ?>" href="<?= base_url('owner/barang-masuk') ?>">📦 Barang Masuk</a>
-                <a class="nav-link" href="<?= base_url('owner/barang-keluar') ?>">📤 Barang Keluar</a>
+                <a class="nav-link <?= (isset($title) && $title == 'Barang Keluar') ? 'active' : '' ?>" href="<?= base_url('owner/barang-keluar') ?>">📤 Barang Keluar</a>
                 <a class="nav-link <?= (isset($title) && $title == 'Laporan Penjualan Owner') ? 'active' : '' ?>" href="<?= base_url('owner/laporan-penjualan') ?>">📝 Laporan Penjualan</a>
                 <a class="nav-link" href="#">📈 Analisist</a>
             <?php endif; ?>
