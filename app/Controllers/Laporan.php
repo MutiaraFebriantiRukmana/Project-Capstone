@@ -1,21 +1,27 @@
 <?php
+
 namespace App\Controllers;
+
 use App\Models\LaporanModel;
 use App\Models\BarangMasukModel;
 
-class Laporan extends BaseController {
+class Laporan extends BaseController
+{
     protected $laporanModel, $barangModel;
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->laporanModel = new LaporanModel();
         $this->barangModel = new BarangMasukModel();
     }
 
-    public function index() {
+    public function index()
+    {
         $role = session()->get('role');
         $data = [
-            'title' => ($role == 'admin') ? 'Laporan Penjualan' : 'Laporan Penjualan Owner',
-            'laporan' => ($role == 'admin') ? $this->laporanModel->getLaporan(false) : $this->laporanModel->getLaporan(false),
-            'barang' => $this->barangModel->findAll()
+            'title'   => ($role == 'admin') ? 'Laporan Penjualan' : 'Laporan Penjualan Owner',
+            'laporan' => $this->laporanModel->getLaporan(false),
+            'barang'  => $this->barangModel->findAll()
         ];
         return view($role . '/laporan_penjualan', $data);
     }
@@ -41,28 +47,31 @@ class Laporan extends BaseController {
         return redirect()->back()->with('success', 'Data Berhasil Disimpan');
     }
 
-    public function update($id) {
-        $laporan = $this->laporanModel->find($id);
-        $barang = $this->barangModel->find($laporan['id_barang']);
-        $new_qty = $this->request->getPost('jumlah_terjual');
+    public function update($id)
+        {
+            $laporanModel = new \App\Models\LaporanModel();
+            $barangModel = new \App\Models\BarangMasukModel();
 
-        $stok_awal = $barang['jumlah_barang'] + $laporan['jumlah_terjual'];
-        $this->barangModel->update($laporan['id_barang'], ['jumlah_barang' => $stok_awal - $new_qty]);
+            $old = $laporanModel->find($id);
+            $new_qty = $this->request->getPost('jumlah_terjual');
+            $barang = $barangModel->find($old['id_barang']);
 
-        $this->laporanModel->update($id, [
-            'jumlah_terjual' => $new_qty,
-            'total' => $new_qty * $laporan['harga_satuan']
-        ]);
-        return redirect()->back()->with('success', 'Data Diperbarui');
-    }
+            $stok_sekarang = ($barang['jumlah_barang'] + $old['jumlah_terjual']) - $new_qty;
+            $barangModel->update($old['id_barang'], ['jumlah_barang' => $stok_sekarang]);
+            $laporanModel->update($id, [
+                'jumlah_terjual' => $new_qty,
+                'total'          => $new_qty * $old['harga_satuan'],
+                'status'         => 'Terjual' 
+            ]);
+
+            return redirect()->to('/admin/laporan')->with('success', 'Data berhasil diperbarui');
+        }
 
     public function delete($id) {
-        $laporan = $this->laporanModel->find($id);
-        $barang = $this->barangModel->find($laporan['id_barang']);
-
-        $this->barangModel->update($laporan['id_barang'], ['jumlah_barang' => $barang['jumlah_barang'] + $laporan['jumlah_terjual']]);
-        
+        $l = $this->laporanModel->find($id);
+        $b = $this->barangModel->find($l['id_barang']);
+        $this->barangModel->update($l['id_barang'], ['jumlah_barang' => $b['jumlah_barang'] + $l['jumlah_terjual']]);
         $this->laporanModel->update($id, ['status' => 'Dihapus']);
-        return redirect()->back()->with('success', 'Data Dihapus & Stok Kembali');
+        return redirect()->back()->with('success', 'Dihapus & Stok Kembali');
     }
 }
