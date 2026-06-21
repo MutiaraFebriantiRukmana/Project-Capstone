@@ -162,11 +162,8 @@
         <a class="nav-link <?= (($title ?? '') == 'Dashboard') ? 'active' : '' ?>" href="<?= base_url('dashboard') ?>">
             <i class="fa-solid fa-chart-pie"></i> Dashboard
         </a>
-
-        <?php if (session()->get('role') == 'owner') : ?>
             <!-- Menu Khusus Owner -->
             <?php if(session()->get('role') == 'owner'): ?>
-                <a class="nav-link <?= ($title == 'Dashboard') ? 'active' : '' ?>" href="<?= base_url('dashboard') ?>"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
                 <a class="nav-link <?= ($title == 'Master Barang') ? 'active' : '' ?>" href="<?= base_url('owner/master-barang') ?>"><i class="fa-solid fa-file-invoice"></i> Master Barang</a>
                 <a class="nav-link <?= ($title == 'Detail Barang') ? 'active' : '' ?>" href="<?= base_url('owner/detail-barang') ?>"><i class="fa-solid fa-list-ul"></i> Detail Barang</a>
                 <a class="nav-link <?= ($title == 'Stok Barang') ? 'active' : '' ?>" href="<?= base_url('admin/stok-barang') ?>"><i class="fa-solid fa-boxes-stacked"></i> Stok Barang</a>
