@@ -1,43 +1,38 @@
 <?= view('layout/header'); ?>
-
 <div class="mb-4">
-    <h3 class="fw-bold m-0">Daftar Stok Barang</h3>
-    <p class="text-muted">Monitoring data stok barang NaCelluler</p>
+    <h3 class="fw-bold m-0 text-dark">Stok Barang (Central Hub)</h3>
+    <p class="text-muted small">Data stok real-time, harga jual, dan analisis mesin otomatis</p>
 </div>
 
-<div class="card p-4">
+<div class="card p-4 border-0 shadow-sm rounded-4">
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead class="table-light">
                 <tr>
                     <th>Kode</th>
                     <th>Nama Barang</th>
-                    <th>Harga Beli</th>
-                    <th>Harga Jual</th>
                     <th class="text-center">Stok</th>
+                    <th>Modal (Beli)</th>
+                    <th>Harga Jual</th>
+                    <th class="text-center">Estimasi Habis</th>
+                    <th class="text-center">Status</th>
                 </tr>
             </thead>
             <tbody>
-                <?php if(empty($barang)): ?>
-                    <tr><td colspan="5" class="text-center py-4">Belum ada data barang.</td></tr>
-                <?php else: ?>
-                    <?php foreach($barang as $b) : ?>
-                    <tr>
-                        <td class="fw-bold"><?= $b['kode_barang'] ?></td>
-                        <td><?= $b['nama_barang'] ?></td>
-                        <td>Rp <?= number_format($b['harga_beli'], 0, ',', '.') ?></td>
-                        <td>Rp <?= number_format($b['harga_jual'], 0, ',', '.') ?></td>
-                        <td class="text-center">
-                            <span class="badge bg-success px-3" style="background-color: #5EEAD4 !important; color:black;">Tersedia: <?= $b['jumlah_barang'] ?></span>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                <?php foreach($barang as $b): ?>
+                <tr>
+                    <!-- URUTAN DATA DIKUNCI AGAR TIDAK GESER -->
+                    <td class="fw-bold text-dark"><?= $b['kode_barang'] ?></td>
+                    <td><?= $b['nama_barang'] ?></td>
+                    <td class="text-center"><span class="badge bg-light text-dark px-3"><?= $b['jumlah_stok'] ?> Unit</span></td>
+                    <td>Rp <?= number_format($b['harga_beli_akhir'], 0, ',', '.') ?></td>
+                    <td class="text-success fw-bold">Rp <?= number_format($b['harga_jual_akhir'], 0, ',', '.') ?></td>
+                    <td class="text-center text-primary fw-bold">± <?= $b['sisa_hari'] ?> Hari</td>
+                    <td class="text-center"><span class="badge bg-<?= $b['color_ml'] ?> rounded-pill px-3"><?= $b['status_ml'] ?></span></td>
+                </tr>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<?= view('layout/footer'); ?>

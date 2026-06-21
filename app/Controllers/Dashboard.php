@@ -1,78 +1,51 @@
-<?php
+<?php namespace App\Controllers;
+use App\Models\StokModel;
 
-namespace App\Controllers;
-
-use App\Models\LaporanModel;
-use App\Models\BarangMasukModel;
-
-class Dashboard extends BaseController
-{
-    public function index()
-    {
-        $laporanModel = new LaporanModel();
-        $barangModel = new BarangMasukModel();
+class Dashboard extends BaseController {
+    public function index() {
         $db = \Config\Database::connect();
+        $stokModel = new StokModel();
+        $stokAnalisis = $stokModel->getStokAnalisis();
 
-        // Ambil Data SMA dari Model 
-        $stokAnalisis = $barangModel->getStokAnalisis();
-        
-        // Ringkasan
-        $totalProduk = count($stokAnalisis);
-        $totalStok = array_sum(array_column($stokAnalisis, 'jumlah_barang'));
-        
-        $hariIni = date('Y-m-d');
-        $penjualanHariIni = $laporanModel->where('tanggal', $hariIni)->where('status', 'Terjual')->selectSum('total')->get()->getRow()->total ?? 0;
+        // Stats 4 Kotak
+        $penjualanHariIni = $db->table('penjualan_detail d')
+            ->join('penjualan_master m', 'd.id_penjualan = m.id_penjualan')
+            ->where('DATE(m.tgl_keluar)', date('Y-m-d'))
+            ->selectSum('d.total_harga')->get()->getRow()->total_harga ?? 0;
 
-        $bulanIni = date('m');
-        $tahunIni = date('Y');
-        $keuntunganBulanIni = $db->table('laporan_penjualan l')
-            ->join('barang_masuk b', 'l.id_barang = b.id_barang')
-            ->where(['l.status' => 'Terjual', 'MONTH(l.tanggal)' => $bulanIni, 'YEAR(l.tanggal)' => $tahunIni])
-            ->selectSum('(l.harga_satuan - b.harga_beli) * l.jumlah_terjual', 'laba')
+        // Keuntungan Bulan Ini (Logic Master-Detail)
+        $untung = $db->table('penjualan_detail d')
+            ->join('penjualan_master m', 'd.id_penjualan = m.id_penjualan')
+            ->join('stok_barang s', 'd.id_stok = s.id_stok')
+            ->where('MONTH(m.tgl_keluar)', date('m'))
+            ->selectSum('(d.harga_jual_satuan - s.harga_beli_akhir) * d.qty_jual', 'laba')
             ->get()->getRow()->laba ?? 0;
 
-        // Grafik Penjualan 7 Hari Terakhir
-        $grafikSales = [];
-        $grafikLabels = [];
+        // Penjualan Terbaru
+        $terbaru = $db->table('penjualan_detail d')
+            ->join('penjualan_master m', 'd.id_penjualan = m.id_penjualan')
+            ->join('stok_barang s', 'd.id_stok = s.id_stok')
+            ->orderBy('m.tgl_keluar', 'DESC')->limit(5)->get()->getResultArray();
+
+        // Grafik 7 Hari
+        $gSales = []; $gLabels = [];
         for ($i = 6; $i >= 0; $i--) {
             $tgl = date('Y-m-d', strtotime("-$i days"));
-            $grafikLabels[] = date('d M', strtotime($tgl));
-            $grafikSales[] = $laporanModel->where('tanggal', $tgl)->where('status', 'Terjual')->selectSum('jumlah_terjual')->get()->getRow()->jumlah_terjual ?? 0;
-        }
-
-        // Filter Stok Menipis 
-        $stokMenipis = array_filter($stokAnalisis, function($v) {
-            return $v['status_ml'] !== 'AMAN';
-        });
-
-        // Logika Regresi Linear (Prediksi Bulan Depan)
-        $monthlyData = $laporanModel->getMonthlySales();
-        $x = []; $y = []; $n = count($monthlyData);
-        foreach ($monthlyData as $idx => $row) { $x[] = $idx + 1; $y[] = (int)$row['total']; }
-        $prediksi = 0;
-        if ($n > 1) {
-            $sumX = array_sum($x); $sumY = array_sum($y); $sumXY = 0; $sumX2 = 0;
-            for ($i = 0; $i < $n; $i++) { $sumXY += ($x[$i] * $y[$i]); $sumX2 += ($x[$i] * $x[$i]); }
-            $denom = ($n * $sumX2 - $sumX * $sumX);
-            if($denom != 0) {
-                $m = ($n * $sumXY - $sumX * $sumY) / $denom;
-                $c = ($sumY - $m * $sumX) / $n;
-                $prediksi = round(($m * ($n + 1)) + $c);
-            }
+            $gLabels[] = date('d M', strtotime($tgl));
+            $gSales[] = $db->table('penjualan_detail d')->join('penjualan_master m', 'd.id_penjualan = m.id_penjualan')
+                ->where('DATE(m.tgl_keluar)', $tgl)->selectSum('d.qty_jual')->get()->getRow()->qty_jual ?? 0;
         }
 
         return view('dashboard', [
-            'title'             => 'Dashboard',
-            'totalProduk'       => $totalProduk,
-            'totalStok'         => $totalStok,
-            'penjualanHariIni'  => $penjualanHariIni,
-            'keuntunganBulanIni'=> $keuntunganBulanIni,
-            'stokMenipis'       => $stokMenipis,
-            'penjualanTerbaru'  => array_slice($laporanModel->getLaporan(false), 0, 5),
-            'grafikLabels'      => $grafikLabels,
-            'grafikSales'       => $grafikSales,
-            'prediksi'          => ($prediksi < 0) ? 0 : $prediksi,
-            'alerts'            => $stokAnalisis
+            'title' => 'Dashboard',
+            'totalProduk' => count($stokAnalisis),
+            'totalStok' => array_sum(array_column($stokAnalisis, 'jumlah_stok')),
+            'penjualanHariIni' => $penjualanHariIni,
+            'keuntunganBulanIni' => $untung,
+            'stokMenipis' => array_filter($stokAnalisis, fn($v) => $v['status_ml'] != 'AMAN'),
+            'penjualanTerbaru' => $terbaru,
+            'gLabels' => $gLabels, 'gSales' => $gSales,
+            'prediksi' => 0 
         ]);
     }
 }
