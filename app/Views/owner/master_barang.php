@@ -27,19 +27,27 @@
         <form action="<?= base_url('owner/master-barang/save') ?>" method="post">
             <h5 class="fw-bold mb-4 text-center">Form Pembelian (Arus Stok Masuk)</h5>
             <div class="row mb-4">
-                <div class="col-6"><label class="small fw-bold">Supplier</label><input type="text" name="supplier" class="form-control bg-light border-0 p-2" required></div>
-                <div class="col-6"><label class="small fw-bold">Estimasi Barang Datang (Hari)</label><input type="number" name="estimasi" class="form-control bg-light border-0 p-2" value="3" required></div>
+                <div class="col-6">
+                    <label class="small fw-bold">Supplier</label>
+                    <input type="text" name="supplier" id="master_supplier" class="form-control bg-light border-0 p-2" placeholder="Masukkan atau Otomatis" required>
+                </div>
+                <div class="col-6">
+                    <label class="small fw-bold">Estimasi Barang Datang (Hari)</label>
+                    <input type="number" name="estimasi" class="form-control bg-light border-0 p-2" value="3" required>
+                </div>
             </div>
             
-            <table class="table table-bordered"><thead class="bg-light small">
-                <tr><th>Kode</th><th>Nama Barang</th><th>Qty</th><th>Harga Beli (Modal)</th><th>Harga Jual Toko</th><th>Aksi</th></tr></thead>
+            <table class="table table-bordered">
+                <thead class="bg-light small">
+                    <tr><th>Kode</th><th>Nama Barang</th><th>Qty</th><th>Harga Beli (Modal)</th><th>Harga Jual Toko</th><th>Aksi</th></tr>
+                </thead>
                 <tbody id="rows">
                     <tr>
-                        <td><input type="text" name="kode_barang[]" class="form-control" required></td>
-                        <td><input type="text" name="nama_barang[]" class="form-control" required></td>
+                        <td><input type="text" name="kode_barang[]" class="form-control kode-in" onchange="getBarang(this)" required></td>
+                        <td><input type="text" name="nama_barang[]" class="form-control nama-in" required></td>
                         <td><input type="number" name="qty[]" class="form-control qty" oninput="calc()" required></td>
                         <td><input type="number" name="harga_beli[]" class="form-control beli" oninput="calc()" required></td>
-                        <td><input type="number" name="harga_jual[]" class="form-control text-success fw-bold" required></td>
+                        <td><input type="number" name="harga_jual[]" class="form-control jual-in text-success fw-bold" required></td>
                         <td>-</td>
                     </tr>
                 </tbody>
@@ -47,7 +55,6 @@
             
             <button type="button" class="btn btn-sm btn-outline-secondary mb-4" onclick="addR()">+ Tambah Baris Barang</button>
 
-            <!-- OTOMATIS TERISI -->
             <div class="row"><div class="col-md-5 ms-auto text-end">
                 <label class="fw-bold">Total Tagihan Otomatis (Rp)</label>
                 <input type="text" id="totalShow" class="form-control form-control-lg fw-bold text-end bg-light text-success border-0" readonly>
@@ -75,14 +82,57 @@ function calc() {
 
 function addR() {
     let row = `<tr>
-        <td><input type="text" name="kode_barang[]" class="form-control" required></td>
-        <td><input type="text" name="nama_barang[]" class="form-control" required></td>
+        <td><input type="text" name="kode_barang[]" class="form-control kode-in" onchange="getBarang(this)" required></td>
+        <td><input type="text" name="nama_barang[]" class="form-control nama-in" required></td>
         <td><input type="number" name="qty[]" class="form-control qty" oninput="calc()" required></td>
         <td><input type="number" name="harga_beli[]" class="form-control beli" oninput="calc()" required></td>
-        <td><input type="number" name="harga_jual[]" class="form-control text-success fw-bold" required></td>
+        <td><input type="number" name="harga_jual[]" class="form-control jual-in text-success fw-bold" required></td>
         <td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove(); calc();">X</button></td>
     </tr>`;
     document.getElementById('rows').insertAdjacentHTML('beforeend', row);
+}
+
+// AUTO ISI NAMA & SUPPLIER + LOCK EDIT
+async function getBarang(el) {
+    const kode = el.value;
+    const row = el.closest('tr');
+    const namaInput = row.querySelector('.nama-in');
+    const jualInput = row.querySelector('.jual-in');
+    const supInput  = document.getElementById('master_supplier');
+
+    if (kode) {
+        try {
+            const response = await fetch('<?= base_url('owner/pembelian/cek-barang') ?>/' + kode);
+            const res = await response.json();
+
+            if (res.status) {
+                // Isi Nama & Kunci
+                namaInput.value = res.nama;
+                namaInput.readOnly = true;
+                namaInput.classList.add('bg-light');
+                
+                // Isi Harga Jual terakhir
+                jualInput.value = res.harga;
+
+                // Isi Supplier & Kunci (Jika Ada di Riwayat)
+                if(res.supplier) {
+                    supInput.value = res.supplier;
+                    supInput.readOnly = true;
+                    supInput.classList.add('bg-light');
+                }
+            } else {
+                namaInput.value = "";
+                namaInput.readOnly = false;
+                namaInput.classList.remove('bg-light');
+                
+                if(supInput.readOnly === false) {
+                    supInput.value = "";
+                }
+            }
+        } catch (error) {
+            console.error('Gagal mengambil data:', error);
+        }
+    }
 }
 </script>
 <?= view('layout/footer') ?>

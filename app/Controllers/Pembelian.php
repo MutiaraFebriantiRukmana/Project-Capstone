@@ -29,6 +29,27 @@ class Pembelian extends BaseController {
         return view('owner/detail_barang', $data);
     }
 
+    // Fungsi pencarian barang cerdas
+    public function cek_barang($kode) {
+        // Cari nama barang di stok
+        $barang = $this->db->table('stok_barang')->where('kode_barang', $kode)->get()->getRow();
+        
+        // Cari supplier terakhir yang pernah memasok kode barang ini
+        $history = $this->db->table('pembelian_detail d')
+            ->join('pembelian_master m', 'd.id_pembelian = m.id_pembelian')
+            ->where('d.kode_barang', $kode)
+            ->orderBy('m.tgl_pembelian', 'DESC')
+            ->select('m.supplier')
+            ->get()->getRow();
+
+        return $this->response->setJSON([
+            'status'   => ($barang || $history) ? true : false,
+            'nama'     => $barang ? $barang->nama_barang : '',
+            'harga'    => $barang ? $barang->harga_jual_akhir : '',
+            'supplier' => $history ? $history->supplier : ''
+        ]);
+    }
+
     public function save() {
         $invoice = 'INV-IN-' . strtoupper(bin2hex(random_bytes(3)));
         $kodes = $this->request->getPost('kode_barang');
