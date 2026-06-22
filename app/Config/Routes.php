@@ -15,6 +15,7 @@ $routes->group('owner', ['filter' => 'auth'], function($routes) {
     $routes->get('analisis', 'Analisis::index');
     $routes->get('laporan', 'Laporan::index');
     $routes->get('laporan/cetak', 'Laporan::cetak');
+    $routes->get('pembelian/cek-barang/(:any)', 'Pembelian::cek_barang/$1');
 });
 
 $routes->group('admin', ['filter' => 'auth'], function($routes) {
