@@ -5,7 +5,7 @@
 </div>
 <div class="card p-4 border-0 shadow-sm rounded-4">
     <table class="table table-hover align-middle">
-        <thead><tr><th>Invoice</th><th>Barang</th><th>Qty</th><th>Admin</th><th>Laba (Cuan)</th></tr></thead>
+        <thead><tr><th>Invoice</th><th>Barang</th><th>Qty</th><th>Admin</th><th>Laba</th></tr></thead>
         <tbody>
             <?php foreach($laporan as $l): ?>
             <?php $laba = ($l['harga_jual_satuan'] - $l['modal']) * $l['qty_jual']; ?>
