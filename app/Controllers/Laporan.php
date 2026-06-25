@@ -18,7 +18,12 @@ class Laporan extends BaseController {
         $awal  = $this->request->getGet('awal');
         $akhir = $this->request->getGet('akhir');
 
-        // Simpan Log Pencetakan
+        // VALIDASI: Jika tanggal akhir mendahului tanggal awal
+        if (strtotime($akhir) < strtotime($awal)) {
+            return redirect()->back()->with('error', 'Gagal! Pilih Tanggal dengan Benar!');
+        }
+
+        // Simpan Log
         $this->db->table('cetak_log')->insert([
             'nama_pencetak' => session()->get('username'),
             'tgl_awal'      => $awal,
@@ -26,7 +31,6 @@ class Laporan extends BaseController {
             'tgl_cetak'     => date('Y-m-d H:i:s')
         ]);
 
-        // Query Ambil Data Penjualan + Join Stok untuk ambil Harga Beli (Modal)
         $data = $this->db->table('penjualan_detail d')
             ->join('penjualan_master m', 'd.id_penjualan = m.id_penjualan')
             ->join('stok_barang s', 'd.id_stok = s.id_stok')
