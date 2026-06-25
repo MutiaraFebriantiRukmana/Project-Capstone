@@ -168,7 +168,7 @@
                 <a class="nav-link <?= ($title == 'Detail Barang') ? 'active' : '' ?>" href="<?= base_url('owner/detail-barang') ?>"><i class="fa-solid fa-list-ul"></i> Detail Barang</a>
                 <a class="nav-link <?= ($title == 'Stok Barang') ? 'active' : '' ?>" href="<?= base_url('admin/stok-barang') ?>"><i class="fa-solid fa-boxes-stacked"></i> Stok Barang</a>
                 <a class="nav-link <?= ($title == 'Barang Keluar') ? 'active' : '' ?>" href="<?= base_url('owner/barang-keluar') ?>"><i class="fa-solid fa-truck-ramp-box"></i> Barang Keluar</a>
-                <a class="nav-link <?= ($title == 'Analisis') ? 'active' : '' ?>" href="<?= base_url('owner/analisis') ?>"><i class="fa-solid fa-magnifying-glass-chart"></i> Analisist</a>
+                <a class="nav-link <?= (strpos($title ?? '', 'Analisis') !== false) ? 'active' : '' ?>" href="<?= base_url('owner/analisis') ?>"><i class="fa-solid fa-magnifying-glass-chart"></i> Analisis</a>
                 <a class="nav-link <?= ($title == 'Laporan') ? 'active' : '' ?>" href="<?= base_url('owner/laporan') ?>"><i class="fa-solid fa-file-pdf"></i> Laporan</a>
             <?php endif; ?>
 
