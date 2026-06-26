@@ -4,6 +4,11 @@
     <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#mIn">+ Invoice Baru</button>
 </div>
 
+<!-- Munculkan Alert kalau ada yang salah -->
+<?php if (session()->getFlashdata('error')) : ?>
+    <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+<?php endif; ?>
+
 <div class="card p-4 border-0 shadow-sm rounded-4">
     <table class="table table-hover align-middle">
         <thead class="table-light"><tr><th>Invoice</th><th>Supplier</th><th>Grand Total</th><th>Tanggal</th><th>Oleh</th></tr></thead>
@@ -25,11 +30,13 @@
 <div class="modal fade" id="mIn" tabindex="-1">
     <div class="modal-dialog modal-xl"><div class="modal-content p-4 rounded-4 border-0 shadow">
         <form action="<?= base_url('owner/master-barang/save') ?>" method="post">
+            <?= csrf_field(); ?> <!-- WAJIB ADA AGAR DATA MAU TERSIMPAN DI HOSTING -->
+            
             <h5 class="fw-bold mb-4 text-center">Form Pembelian (Arus Stok Masuk)</h5>
             <div class="row mb-4">
                 <div class="col-6">
                     <label class="small fw-bold">Supplier</label>
-                    <input type="text" name="supplier" id="master_supplier" class="form-control bg-light border-0 p-2" placeholder="Masukkan atau Otomatis" required>
+                    <input type="text" name="supplier" id="master_supplier" class="form-control bg-light border-0 p-2" required>
                 </div>
                 <div class="col-6">
                     <label class="small fw-bold">Estimasi Barang Datang (Hari)</label>
@@ -92,7 +99,6 @@ function addR() {
     document.getElementById('rows').insertAdjacentHTML('beforeend', row);
 }
 
-// AUTO ISI NAMA & SUPPLIER + LOCK EDIT
 async function getBarang(el) {
     const kode = el.value;
     const row = el.closest('tr');
@@ -104,17 +110,11 @@ async function getBarang(el) {
         try {
             const response = await fetch('<?= base_url('owner/pembelian/cek-barang') ?>/' + kode);
             const res = await response.json();
-
             if (res.status) {
-                // Isi Nama & Kunci
                 namaInput.value = res.nama;
                 namaInput.readOnly = true;
                 namaInput.classList.add('bg-light');
-                
-                // Isi Harga Jual terakhir
                 jualInput.value = res.harga;
-
-                // Isi Supplier & Kunci (Jika Ada di Riwayat)
                 if(res.supplier) {
                     supInput.value = res.supplier;
                     supInput.readOnly = true;
@@ -124,14 +124,9 @@ async function getBarang(el) {
                 namaInput.value = "";
                 namaInput.readOnly = false;
                 namaInput.classList.remove('bg-light');
-                
-                if(supInput.readOnly === false) {
-                    supInput.value = "";
-                }
+                if(supInput.readOnly === false) { supInput.value = ""; }
             }
-        } catch (error) {
-            console.error('Gagal mengambil data:', error);
-        }
+        } catch (error) { console.error('Gagal:', error); }
     }
 }
 </script>
