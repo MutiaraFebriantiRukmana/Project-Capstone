@@ -18,7 +18,7 @@ class Analisis extends BaseController {
                            JOIN stok_barang s ON d.id_stok = s.id_stok GROUP BY kat, tgl")->getResultArray();
 
         $uniqueKats = array_unique(array_column($raw, 'kat'));
-        $colorMap = ['A' => '#FF4444', 'B' => '#00C851', 'C' => '#33b5e5', 'D' => '#ffbb33', 'E' => '#aa66cc'];
+        $colorMap = ['A' => '#FF4444', 'B' => '#00C851', 'C' => '#33b5e5', 'D' => '#f9fe6a', 'E' => '#aa66cc'];
 
         $datasetsLalu = [];
         $datasetsDepan = [];
